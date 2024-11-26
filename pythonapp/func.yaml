@@ -1,0 +1,7 @@
+specVersion: 0.36.0
+name: pythonapp
+runtime: python
+registry: docker.io/mdbell47/serverless-py-function
+created: 2024-11-26T16:05:38.858240372-06:00
+build:
+  builder: pack
