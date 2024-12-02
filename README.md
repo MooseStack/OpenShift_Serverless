@@ -17,7 +17,7 @@
 
 `--target .` : Output to yaml (you can oc apply or put it in ArgoCD, or etc.)
 
-`--cluster-local` : No Route
+`--cluster-local` : No Route (accessible only within cluster)
 
 
 ## `kn service list`
@@ -36,21 +36,47 @@ serverless-service-00001   serverless-service                    1            58
 
 ## `kn service update` : updates revision
 
-`--tag blue` : Tagging for traffic allocation. This sticks the traffic by the image's digest SHA key, and not by a tag like "latest". The tag will move up as you create new revisions, however traffic will remain on the original tag provided.
+`--traffic` : traffic allocation
+
+`--tag blue` : Tag to get a custom route that can be used to test traffic. This sticks the traffic by the image's digest SHA key, and not by a tag like "latest". The tag will move up as you create new revisions, however traffic will remain on the original revision provided.
 
 `--tag red --untag blue` : Remove old tag and replace with new tag.
 
-`--traffic` : traffic allocation
 
+### Update revision but only forward 20% of traffic to new one
+`kn service update serverless-service --env TARGET=someNewEnvVarABCDEF --tag serverless-service-00001=green --tag @latest=blue --traffic @latest=20 --traffic green=80`
 
-### Update revision but dont forward traffic to new revision
-`kn service update serverless-service --env TARGET=someNewEnvVarABC --tag blue`
+### Get route info
+```
+$ kn routes describe serverless-service
+
+Name:       serverless-service
+Namespace:  serverless-demo
+Age:        12m
+URL:        https://serverless-service-serverless-demo.apps.dev.openshift.com
+Service:    serverless-service
+
+Traffic Targets:  
+   20%  @latest (serverless-service-00002) #blue
+        URL:  https://blue-serverless-service-serverless-demo.apps.dev.openshift.com
+   80%  serverless-service-00001 #green
+        URL:  https://green-serverless-service-serverless-demo.apps.dev.openshift.com
+```
 
 ### Update traffic allocation:
 
-`kn service update serverless-service --traffic serverless-service-00008=30,serverless-service-00003=70`
+`kn service update serverless-service --traffic @latest=80 --traffic green=20`
  - Same can be done in YAML: https://knative.dev/docs/serving/traffic-management/
 
+
+
+## Delete
+
+### Delete any unused revisions (untagged and without traffic allocated)
+`kn revision delete --prune-all`
+
+### Delete a Knative Serving Service (will delete all revisions too)
+`kn service delete serverless-service`
 
 
 
