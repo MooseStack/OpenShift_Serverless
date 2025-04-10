@@ -1,26 +1,27 @@
 apiVersion: serving.knative.dev/v1
 kind: Service
 metadata:
-  creationTimestamp: null
   name: serverless-service
-  namespace: serverless-demo
 spec:
   template:
-    metadata:
-      annotations:
-        client.knative.dev/updateTimestamp: "2024-11-26T21:59:50Z"
-        client.knative.dev/user-image: knativesamples/helloworld
-      creationTimestamp: null
     spec:
       containers:
       - env:
         - name: TARGET
-          value: v1
-        - name: FROM
-          value: examples
+          value: v2 ## Change this or Image to get a new revision
         image: knativesamples/helloworld
-        name: ""
         ports:
         - containerPort: 8080
-        resources: {}
-status: {}
+
+        
+  traffic:
+   ## Update ABOVE and below to create a NEW knative revision.
+    - latestRevision: true
+      percent: 100 ## change to 20% to give 80% to old revision
+      tag: green # change to "blue" to tag new revision
+
+    ## Uncomment below to have old revision receive 80% of the traffic
+    # - latestRevision: false
+    #   percent: 80
+    #   revisionName: serverless-service-00001
+    #   tag: green
